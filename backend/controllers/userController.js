@@ -28,9 +28,27 @@ module.exports.addUser = async (req, res) => {
 }
 module.exports.allUser = async (req, res) => {
     try {
-        const { page = 1, perPage = 25, name } = req.query;
+        const { page = 1, perPage = 25, name, filter } = req.query;
 
-        const query = name ? { name: { $regex: new RegExp(name, 'i') } } : {};
+        let query = name ? { name: { $regex: new RegExp(name, 'i') } } : {};
+
+        // Apply additional filtering based on the selected filter
+        if (filter) {
+            switch (filter) {
+                case 'earphone':
+                    query.earphone = true;
+                    break;
+                case 'chargerid':
+                    query.chargerid = { $ne: '0000' }; // Exclude users with chargerid==='0000'
+                    break;
+                case 'setid':
+                    query.setid = { $ne: '0000' }; // Exclude users with setid==='0000'
+                    break;
+                default:
+                    // Handle unknown filters or do nothing for 'No Filter'
+                    break;
+            }
+        }
 
         const data = await User.find(query)
             .sort({ createdAt: -1 })
